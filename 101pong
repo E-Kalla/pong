@@ -1,0 +1,111 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Term::ANSIColor;
+use Math::BigFloat;
+use Math::Trig;
+
+sub affichage {
+print "USAGE\n	./101pong x0 y0 z0 x1 y1 z1 n\n\nDESCRIPTION\n";
+print "       x0   ball abscissa at time t - 1\n";
+print "       y0   ball ordinate at time t - 1\n";
+print "       z0   ball altitude at time t - 1\n";
+print "       x1   ball abscissa at time t\n";
+print "       y1   ball ordinate at time t\n";
+print "       z1   ball altitude at time t\n";
+print "       n    time shift (greater than or equal to zero, integer)\n";
+}
+sub calcul_position {
+    my ($t,$xB,$yB,$zB,$xAB,$yAB,$zAB) = @_;
+    my ($xball,$yball,$zball) = (0,0,0);
+    $xball = $t*$xAB + $xB;
+    $yball = $t*$yAB + $yB;
+    $zball = $t*$zAB + $zB;
+    return ($xball,$yball,$zball);
+}
+
+sub error_management {
+    my (@arg) = @ARGV;
+    my $i = 1;
+    my $useless = 0;
+    for (; $i != 7; $i += 1)
+    {
+        if ($ARGV[$i] =~ m/[^0-9.-]/)
+        {
+            exit (84);
+        } else { $useless += 1;
+        }
+    }
+}
+sub check_div_by_zero {
+    my ($norm1,$norm2) = @_;
+
+    if ($norm1 == 0 || $norm2 == 0)
+    {
+        exit (84);
+    }
+}
+
+if ($ARGV[0] eq "-h")
+{
+	&affichage;
+	exit (0);
+}
+
+if (@ARGV != 7) 
+{
+    exit (84);
+}
+
+sub main {
+    &error_management;
+if ($ARGV[6] < 0)
+{
+	exit (84);
+}
+
+my ($xA,$yA,$zA,$xB,$yB,$zB,$t) = @ARGV;
+my ($xC,$yC,$zC) = ($xB,$yB,$zA);
+my $xAB = $xB-$xA;
+my $yAB = $yB-$yA;
+my $zAB = $zB-$zA;
+my $xAC = $xC-$xA;
+my $yAC = $yC-$yA;
+my $zAC = $zC-$zA;
+
+my ($xball,$yball,$zball) = &calcul_position($t,$xB,$yB,$zB,$xAB,$yAB,$zAB);
+
+print "The velocity vector of the ball is:\n(";
+print(sprintf("%.2f",$xAB));
+print ", ";
+print(sprintf("%.2f",$yAB));
+print ", ";
+print(sprintf("%.2f",$zAB));
+print ")\n";
+
+
+print "At time t + $t, ball coordinates will be:\n(";
+print(sprintf("%.2f",$xball));
+print ", ";
+print(sprintf("%.2f",$yball));
+print ", ";
+print(sprintf("%.2f",$zball));
+print ")\n";
+
+my $normAB = sqrt(($xB-$xA)**2 + ($yB-$yA)**2 + ($zB-$zA)**2);
+my $normAC = sqrt(($xC-$xA)**2 + ($yC-$yA)**2 + ($zC-$zA)**2);
+my $vectormul = ($xAB*$xAC) + ($yAB*$yAC) + ($zAB*$zAC);
+
+&check_div_by_zero($normAB,$normAC);
+
+my $costeta = $vectormul/($normAB*$normAC);
+my $angle = rad2deg(acos($costeta));
+
+if (($zB < 0 && $zball > 0) || ($zB > 0 && $zball < 0))
+{
+$angle =~ s/(.\d{2})\d*/$1/;
+    printf "The incidence angle is:\n$angle degrees\n";
+} else { print "The ball won't reach the bat.\n";
+        }
+}
